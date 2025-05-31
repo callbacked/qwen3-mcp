@@ -313,11 +313,16 @@ function Message({ role, content, name, isStreamingActiveForThisMessage = false,
   );
 }
 
-export default function Chat({ messages, isRunning, onRetryFailedToolCall }) { 
+export default function Chat({ messages, isRunning, isExecutingTool, onRetryFailedToolCall }) { 
   const empty = messages.length === 0;
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
 
   useEffect(() => {
+    if (isExecutingTool) { 
+      setShowLoadingIndicator(true);
+      return;
+    }
+
     if (!isRunning) {
       const timeout = setTimeout(() => {
         setShowLoadingIndicator(false);
@@ -332,23 +337,19 @@ export default function Chat({ messages, isRunning, onRetryFailedToolCall }) {
 
     const lastMessage = messages[messages.length - 1];
     
-    if (lastMessage.role === 'user') {
-      setShowLoadingIndicator(true);
-    } else if (lastMessage.role === 'tool') {
+    if (lastMessage.role === 'user' || lastMessage.role === 'tool') {
       setShowLoadingIndicator(true);
     } else if (lastMessage.role === 'assistant') {
-      const hasVisibleContent = lastMessage.content && lastMessage.content.trim().length > 10;
-      const mightBeProcessingTool = lastMessage.isUsingTool === true;
-      
-      if (hasVisibleContent && !mightBeProcessingTool) {
+      const hasStartedStreamingText = lastMessage.content && lastMessage.content.trim().length > 0;
+      if (hasStartedStreamingText) {
         setShowLoadingIndicator(false);
       } else {
-        setShowLoadingIndicator(true);
+        setShowLoadingIndicator(true); 
       }
     } else {
       setShowLoadingIndicator(false);
     }
-  }, [isRunning, messages]);
+  }, [isRunning, messages, isExecutingTool]);
 
   return (
     <div

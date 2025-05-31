@@ -274,6 +274,8 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
   const parsedToolCallsFromThisTurn = parseToolCallsFromOutput(assistantMessageContent);
 
   if (parsedToolCallsFromThisTurn.length > 0) {
+    self.postMessage({ status: "tool_execution_start" });
+
     const { toolResponseMessages, mcpErrorOccurred } = await executeAllToolCalls(
       parsedToolCallsFromThisTurn, 
       mcpToolsArray, 

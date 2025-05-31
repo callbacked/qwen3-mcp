@@ -24,6 +24,7 @@ function App() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [progressItems, setProgressItems] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isExecutingTool, setIsExecutingTool] = useState(false);
 
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
@@ -218,6 +219,11 @@ function App() {
         return; // Handled
       }
 
+      if (status === "tool_execution_start") {
+        setIsExecutingTool(true);
+        return;
+      }
+      
       if (status === "tool_retry_execution_success_generating_response") {
         const { messageIndex } = e.data.data;
         setMessages(prev => {
@@ -236,6 +242,7 @@ function App() {
           }
           return newMessages;
         });
+        setIsExecutingTool(false);
         return; 
       }
       
@@ -257,6 +264,7 @@ function App() {
           return newMessages;
         });
         setIsRunning(false);
+        setIsExecutingTool(false);
         return;
       }
 
@@ -264,6 +272,7 @@ function App() {
         case "loading":
           setStatus("loading");
           setLoadingMessage(e.data.data);
+          setIsExecutingTool(false);
           break;
         case "initiate":
           setProgressItems((prev) => [...prev, e.data]);
@@ -284,8 +293,10 @@ function App() {
           break;
         case "start":
           setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+          setIsExecutingTool(false);
           break;
         case "update":
+          setIsExecutingTool(false);
           {
             const { output, tps, numTokens, state, toolCallInProgress, isDefinitivelyToolCall } = e.data;
             setTps(tps);
@@ -331,14 +342,17 @@ function App() {
           break;
         case "complete":
           setIsRunning(false);
+          setIsExecutingTool(false);
           break;
         case "error": 
           setError(e.data.data);
           setIsRunning(false);
+          setIsExecutingTool(false);
           break;
         case "tool_execution_error":
           {
-            //console.log("[App.jsx] onMessageReceived: Worker sent 'tool_execution_error':", e.data);
+            console.log("[App.jsx] onMessageReceived: Worker sent 'tool_execution_error':", e.data);
+            setIsExecutingTool(false);
             const { errorDetails } = e.data; 
             setMessages((prev) => {
               const cloned = [...prev];
@@ -555,6 +569,7 @@ function App() {
     if (worker.current) {
       worker.current.postMessage({ type: "interrupt" });
       setIsRunning(false);
+      setIsExecutingTool(false);
       setMessages(prev => {
         const newMessages = [...prev];
         if (newMessages.length > 0 && newMessages.at(-1).role === "assistant") {
@@ -580,6 +595,7 @@ function App() {
       setMessages(prev => prev.map((msg, idx) => 
         idx === messageIndex ? { ...msg, toolRetryFailed: true, isRetrying: false, toolErrorDetails: { ...(msg.toolErrorDetails || {}), errorMessage: "Could not parse original tool call for retry." } } : msg
       ));
+      setIsExecutingTool(false);
       return;
     }
 
@@ -599,6 +615,7 @@ function App() {
       setMessages(prev => prev.map((msg, idx) => 
         idx === messageIndex ? { ...msg, toolRetryFailed: true, isRetrying: false, toolErrorDetails: { ...(msg.toolErrorDetails || {}), errorMessage: "Failed to parse tool call arguments for retry." } } : msg
       ));
+      setIsExecutingTool(false);
       return;
     }
 
@@ -607,10 +624,12 @@ function App() {
       setMessages(prev => prev.map((msg, idx) => 
         idx === messageIndex ? { ...msg, toolRetryFailed: true, isRetrying: false, toolErrorDetails: { ...(msg.toolErrorDetails || {}), errorMessage: "Function name missing in tool call for retry." } } : msg
       ));
+      setIsExecutingTool(false);
       return;
     }
 
     //console.log(`[App.jsx] Retrying tool call: ${functionName} with args:`, args);
+    setIsExecutingTool(true);
     
     setMessages(prev => {
       const newMessages = [...prev];
@@ -674,6 +693,7 @@ function App() {
           <Chat 
             messages={messages} 
             isRunning={isRunning} 
+            isExecutingTool={isExecutingTool}
             onRetryFailedToolCall={retryFailedToolCall}
           />
         </div>
