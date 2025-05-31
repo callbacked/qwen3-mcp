@@ -48,7 +48,7 @@ Additionally, it served as an exercise to implement a way of limiting how long Q
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/qwen3-mcp.git 
+    git clone https://github.com/callbacked/qwen3-mcp
     cd qwen3-mcp
     ```
 
