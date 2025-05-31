@@ -1,6 +1,6 @@
 # Qwen3-MCP
 
-**An MCP-enabled Qwen3 0.6B demo with local tool-use and adjustable thinking budget, all in your browser!**
+**An MCP-enabled Qwen3 0.6B demo with adjustable thinking budget, all in your browser!**
 
 ## Overview
 
