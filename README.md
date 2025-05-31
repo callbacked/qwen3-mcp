@@ -7,7 +7,7 @@
 This project began as an adaptation of Xenova's excellent [Qwen3 0.6B WebGPU demo code](https://github.com/huggingface/transformers.js-examples/tree/main/qwen3-webgpu), which provided a solid foundation for model initialization and UI. Qwen3-MCP builds upon this by integrating MCP support client, the ability to control thinking length, and a new UI design.
 
 
-The motivation came from the fact that **all** Qwen3 models have tool calling support, and with 0.6B being
+The motivation came from the fact that **all** Qwen3 models have tool calling support, and coupled with the fact that 0.6B is
 surprisingly coherent in considering its very tiny size. Therefore, I was curious to see how far I can take this model in general tool calling tasks.
 
 Additionally, it served as an exercise to implement a way of limiting how long Qwen3 can think, by giving it a max "Thinking Budget" of N tokens before providing a final answer. That way we can avoid Qwen3 "overthinking" sometimes. The idea for that came [from an article by Zach Mueller](https://muellerzr.github.io/til/end_thinking.html) describing how it can be acheived. It was a great read!

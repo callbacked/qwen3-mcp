@@ -5,7 +5,7 @@ import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 export let managedMcpClients = new Map(); // obj = { url: { client, transportType, tools: [], namePrefix: "", lastError: null, toolsCount: 0 } }
 
 async function _connectUrlAndStoreClient(url, postMessageCallback) {
-  console.log(`Attempting to connect/re-connect to MCP server: ${url}`);
+  //console.log(`Attempting to connect/re-connect to MCP server: ${url}`);
   if (postMessageCallback) {
     postMessageCallback({
       type: "mcp_server_status",
@@ -23,12 +23,12 @@ async function _connectUrlAndStoreClient(url, postMessageCallback) {
 
   // call streamable first (since it's the new protocol), but keep sse as fallback
   try {
-    console.log(`[${url}] Attempting Streamable HTTP transport...`);
+    //console.log(`[${url}] Attempting Streamable HTTP transport...`);
     transport = new StreamableHTTPClientTransport(serverUrl);
     client = new Client({ name: "webllm-mcp-client-streamable", version: "1.0.0" });
     await client.connect(transport);
     transportType = 'streamableHttp';
-    console.log(`[${url}] Connected using Streamable HTTP transport.`);
+    //console.log(`[${url}] Connected using Streamable HTTP transport.`);
   } catch (streamableError) {
     console.warn(`[${url}] Streamable HTTP connection failed:`, streamableError);
     connectionError = streamableError; 
@@ -37,14 +37,14 @@ async function _connectUrlAndStoreClient(url, postMessageCallback) {
     
     // sse fallback
 
-    console.log(`[${url}] Falling back to SSE transport...`);
+    //console.log(`[${url}] Falling back to SSE transport...`);
     try {
       transport = new SSEClientTransport(serverUrl);
       client = new Client({ name: "webllm-mcp-client-sse", version: "1.0.0" });
       await client.connect(transport);
       transportType = 'sse';
       connectionError = null; 
-      console.log(`[${url}] Connected using SSE transport.`);
+      //console.log(`[${url}] Connected using SSE transport.`);
     } catch (sseError) {
       console.error(`[${url}] SSE connection also failed:`, sseError);
       connectionError = sseError;
@@ -75,7 +75,7 @@ async function _connectUrlAndStoreClient(url, postMessageCallback) {
         lastError: null,
         toolsCount: tools.length
       });
-      console.log(`[${url}] Successfully listed tools using ${transportType}.`, toolsResponse);
+      //console.log(`[${url}] Successfully listed tools using ${transportType}.`, toolsResponse);
       status = { success: true, error: null, toolsCount: tools.length, tools: toolsWithState };
     } catch (listToolsError) {
       console.error(`[${url}] Connected via ${transportType} but failed to list tools:`, listToolsError);
@@ -98,7 +98,7 @@ async function _connectUrlAndStoreClient(url, postMessageCallback) {
 }
 
 export async function synchronizeMcpClients(targetServerUrls = [], postMessageCallback) {
-  console.log("Synchronizing MCP clients with target URLs:", targetServerUrls);
+  //console.log("Synchronizing MCP clients with target URLs:", targetServerUrls);
   const currentUrls = Array.from(managedMcpClients.keys());
   const urlsToShutdown = currentUrls.filter(url => !targetServerUrls.includes(url));
   const urlsToInitialize = targetServerUrls.filter(url => 
@@ -110,14 +110,14 @@ export async function synchronizeMcpClients(targetServerUrls = [], postMessageCa
     const existing = managedMcpClients.get(url);
     if (existing && existing.client) {
       if (typeof existing.client.disconnect === 'function') {
-        console.log(`Calling disconnect() for MCP client being shut down: ${url}`);
+        //console.log(`Calling disconnect() for MCP client being shut down: ${url}`);
         try {
           await existing.client.disconnect(); // Await disconnect
         } catch (disconnectError) {
           console.error(`Error during disconnect for ${url}:`, disconnectError);
         }
       } else if (typeof existing.client.close === 'function') { // Fallback or alternative
-        console.log(`Calling close() for MCP client being shut down: ${url}`);
+        //console.log(`Calling close() for MCP client being shut down: ${url}`);
         try {
           await existing.client.close(); // Await close
         } catch (closeError) {
@@ -126,13 +126,13 @@ export async function synchronizeMcpClients(targetServerUrls = [], postMessageCa
       }
     }
     managedMcpClients.delete(url);
-    console.log(`[MCP Client Manager] Removed client for ${url} from managed list.`);
+    //console.log(`[MCP Client Manager] Removed client for ${url} from managed list.`);
   }
 
   for (const url of urlsToInitialize) {
     await _connectUrlAndStoreClient(url, postMessageCallback); 
   }
-  console.log("MCP Clients synchronized. Current state:", managedMcpClients);
+  //console.log("MCP Clients synchronized. Current state:", managedMcpClients);
 }
 
 export async function addAndConnectMcpServer(url, postMessageCallback) {
@@ -141,7 +141,7 @@ export async function addAndConnectMcpServer(url, postMessageCallback) {
   // If client exists, is actively connected (client object present), and has no error, 
   // assume it's healthy. Just re-send its current status.
   if (existingClientData?.client && !existingClientData?.error) {
-    console.log(`[MCP Client Manager] MCP URL ${url} is already known and connected. Re-sending status.`);
+    //console.log(`[MCP Client Manager] MCP URL ${url} is already known and connected. Re-sending status.`);
     postMessageCallback({
       type: "mcp_server_status",
       data: { 
@@ -161,18 +161,18 @@ export async function addAndConnectMcpServer(url, postMessageCallback) {
   // In cases 2 or 3 (i.e., if existingClientData is defined but not healthy), 
   // we must ensure we clear the old state before attempting a new connection.
   if (existingClientData) { 
-    console.log(`[MCP Client Manager] Clearing existing (error/disconnected/stale) entry for ${url} before re-attempting connection.`);
+    //console.log(`[MCP Client Manager] Clearing existing (error/disconnected/stale) entry for ${url} before re-attempting connection.`);
     if (existingClientData.client) {
       if (typeof existingClientData.client.disconnect === 'function') {
         try {
-          console.log(`[MCP Client Manager] Calling disconnect() on stale client for ${url}`);
+          //console.log(`[MCP Client Manager] Calling disconnect() on stale client for ${url}`);
           await existingClientData.client.disconnect(); // Await disconnect
         } catch (e) {
           console.warn(`[MCP Client Manager] Error during disconnect for stale client ${url}:`, e);
         }
       } else if (typeof existingClientData.client.close === 'function') {
          try {
-          console.log(`[MCP Client Manager] Calling close() on stale client for ${url}`);
+          //console.log(`[MCP Client Manager] Calling close() on stale client for ${url}`);
           await existingClientData.client.close(); // Await close
         } catch (e) {
           console.warn(`[MCP Client Manager] Error during close for stale client ${url}:`, e);
@@ -183,23 +183,23 @@ export async function addAndConnectMcpServer(url, postMessageCallback) {
   }
   
   // Now, whether it was a brand new URL or a stale one we just cleared, proceed to connect.
-  console.log(`[MCP Client Manager] Attempting fresh connection for ${url}.`);
+  //console.log(`[MCP Client Manager] Attempting fresh connection for ${url}.`);
   await _connectUrlAndStoreClient(url, postMessageCallback); // This will create and store a new client state
 }
 
 export async function forceReconnectMcpServer(url, postMessageCallback) {
-  console.log(`Forcing reconnect for MCP server: ${url}`);
+  //console.log(`Forcing reconnect for MCP server: ${url}`);
   const existing = managedMcpClients.get(url);
   if (existing && existing.client) {
     if (typeof existing.client.disconnect === 'function') {
-      console.log(`Calling disconnect() for existing client ${url} before force reconnect.`);
+      //console.log(`Calling disconnect() for existing client ${url} before force reconnect.`);
       try {
         await existing.client.disconnect(); // Await disconnect
       } catch (closeError) {
         console.error(`Error during disconnect for ${url} during force reconnect:`, closeError);
       }
     } else if (typeof existing.client.close === 'function') {
-      console.log(`Calling close() for existing client ${url} before force reconnect.`);
+      //console.log(`Calling close() for existing client ${url} before force reconnect.`);
       try {
         await existing.client.close(); // Await close
       } catch (closeError) {
@@ -209,6 +209,6 @@ export async function forceReconnectMcpServer(url, postMessageCallback) {
   }
   managedMcpClients.delete(url);
   
-  console.log(`Proceeding with fresh connection attempt for ${url} after force.`);
+  //console.log(`Proceeding with fresh connection attempt for ${url} after force.`);
   return await _connectUrlAndStoreClient(url, postMessageCallback);
 } 

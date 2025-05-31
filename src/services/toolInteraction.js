@@ -7,7 +7,7 @@ export function prepareToolData(managedMcpClients, activeUrlsForThisGeneration) 
         if (state && !state.lastError && state.tools && state.tools.length > 0) {
         state.tools.forEach(tool => {
           if (!tool.isEnabled) {
-              console.log(`[ToolInteraction] Skipping tool explicitly disabled at tool-level: ${tool.name} from ${activeUrl}`);
+              //console.log(`[ToolInteraction] Skipping tool explicitly disabled at tool-level: ${tool.name} from ${activeUrl}`);
             return;
           }
           
@@ -22,14 +22,14 @@ export function prepareToolData(managedMcpClients, activeUrlsForThisGeneration) 
         } else if (state && state.lastError) {
           console.warn(`[ToolInteraction] Server ${activeUrl} (specified as active for this turn) has a lastError recorded: ${state.lastError.message}. Skipping its tools.`);
         } else if (state && (!state.tools || state.tools.length === 0)) {
-          console.log(`[ToolInteraction] Server ${activeUrl} (specified as active for this turn) is connected but has no tools listed.`);
+          //console.log(`[ToolInteraction] Server ${activeUrl} (specified as active for this turn) is connected but has no tools listed.`);
         }
       } else {
         console.warn(`[ToolInteraction] Server URL ${activeUrl} (specified as active for this turn) was not found in managedMcpClients. It might have been recently disconnected or disabled.`);
       }
     });
   } else if (managedMcpClients.size > 0 && (!activeUrlsForThisGeneration || activeUrlsForThisGeneration.length === 0)) {
-    console.log("[ToolInteraction] No active server URLs provided for this generation turn, so no tools will be prepared, even if servers are managed.");
+    //console.log("[ToolInteraction] No active server URLs provided for this generation turn, so no tools will be prepared, even if servers are managed.");
   }
 
   const mcpToolsArray = aggregatedToolsForPrompt.map(t => ({ 
@@ -51,13 +51,13 @@ export function prepareToolData(managedMcpClients, activeUrlsForThisGeneration) 
   }));
 
   if (toolsForTemplate.length > 0) {
-    console.log("[ToolInteraction] Tools prepared for template:", JSON.stringify(toolsForTemplate, null, 2));
+    //console.log("[ToolInteraction] Tools prepared for template:", JSON.stringify(toolsForTemplate, null, 2));
   } else {
-    console.log("[ToolInteraction] No tools available or no MCP servers configured.");
+    //console.log("[ToolInteraction] No tools available or no MCP servers configured.");
   }
 
   const currentLength = JSON.stringify(toolsForTemplate).length;
-  console.log(`[ToolInteraction] Current toolsForTemplate character length: ${currentLength}, Number of tools: ${toolsForTemplate.length}`);
+  //console.log(`[ToolInteraction] Current toolsForTemplate character length: ${currentLength}, Number of tools: ${toolsForTemplate.length}`);
 
   return { toolsForTemplate, mcpToolsArray };
 }
@@ -86,7 +86,7 @@ export function parseToolCallsFromOutput(assistantMessageContent) {
           arguments: parsedArgs,
           rawToolCallText: match[0]
         });
-        console.log(`[ToolInteraction] Parsed tool call: Name=${callJson.name}, Args=`, parsedArgs);
+        //console.log(`[ToolInteraction] Parsed tool call: Name=${callJson.name}, Args=`, parsedArgs);
       } else {
         console.warn("[ToolInteraction] Parsed tool call JSON missing name or arguments:", callJsonString);
       }
@@ -113,7 +113,7 @@ export async function executeAllToolCalls(parsedCalls, mcpToolsArray, managedMcp
           throw new Error(errorMsg);
         }
         const actualClient = clientProvider.client;
-        console.log(`[ToolInteraction] Calling MCP tool: '${toolToCall.originalName}' on server '${toolToCall.serverUrl}' with args:`, parsedCall.arguments);
+        //console.log(`[ToolInteraction] Calling MCP tool: '${toolToCall.originalName}' on server '${toolToCall.serverUrl}' with args:`, parsedCall.arguments);
 
         const result = await actualClient.callTool({
           name: toolToCall.originalName,
@@ -121,7 +121,7 @@ export async function executeAllToolCalls(parsedCalls, mcpToolsArray, managedMcp
         });
         
         const toolContent = result.content && result.content[0] ? result.content[0].text : JSON.stringify(result);
-        console.log(`[ToolInteraction] MCP tool '${toolToCall.originalName}' result:`, toolContent);
+        //console.log(`[ToolInteraction] MCP tool '${toolToCall.originalName}' result:`, toolContent);
 
         toolResponseMessages.push({
           role: "tool",

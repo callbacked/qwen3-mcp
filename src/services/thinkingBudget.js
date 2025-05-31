@@ -22,7 +22,7 @@ export class ThinkingTokenBudgetProcessor extends LogitsProcessor {
     if (this.nl_token_id === undefined) {
       console.warn("\n token ID not found. ThinkingTokenBudgetProcessor may not work correctly.");
     }
-    console.log(`[ThinkingBudget] Initialized with maxThinkingTokens: ${this.maxThinkingTokens}`);
+    //console.log(`[ThinkingBudget] Initialized with maxThinkingTokens: ${this.maxThinkingTokens}`);
   }
 
   _call(input_ids, scores) {
@@ -31,13 +31,13 @@ export class ThinkingTokenBudgetProcessor extends LogitsProcessor {
     }
 
     this.tokens_generated += 1;
-    console.log(`[ThinkingBudget] _call: token ${this.tokens_generated}/${this.maxThinkingTokens === undefined ? 'unlimited' : this.maxThinkingTokens}`);
+    //console.log(`[ThinkingBudget] _call: token ${this.tokens_generated}/${this.maxThinkingTokens === undefined ? 'unlimited' : this.maxThinkingTokens}`);
 
     // if zero budget for thinking content. Force \n then </think> immediately.
     if (this.maxThinkingTokens === 0 && !this.stopped_thinking) {
       const newScores = new Float32Array(scores.data.length).fill(this.neg_inf);
       if (this.tokens_generated === 1) { 
-        console.log("[ThinkingBudget] Zero budget: Forcing newline token.");
+        //console.log("[ThinkingBudget] Zero budget: Forcing newline token.");
         if (this.nl_token_id !== undefined) {
           newScores[this.nl_token_id] = 0; // Force newline
         } else {
@@ -48,13 +48,13 @@ export class ThinkingTokenBudgetProcessor extends LogitsProcessor {
           this.stopped_thinking = true;
         }
       } else if (this.tokens_generated === 2) { // Second token
-        console.log("[ThinkingBudget] Zero budget: Forcing </think> token.");
+        //console.log("[ThinkingBudget] Zero budget: Forcing </think> token.");
         if (this.think_end_token_id !== undefined) {
           newScores[this.think_end_token_id] = 0; // Force </think>
         }
         this.stopped_thinking = true; // Mark thinking as stopped
       } else if (this.tokens_generated > 2) {
-        console.log("[ThinkingBudget] Zero budget: Exceeded 2 tokens, forcing </think> and stopping (safeguard).");
+        //console.log("[ThinkingBudget] Zero budget: Exceeded 2 tokens, forcing </think> and stopping (safeguard).");
         if (this.think_end_token_id !== undefined) {
            newScores[this.think_end_token_id] = 0;
         }
@@ -67,11 +67,11 @@ export class ThinkingTokenBudgetProcessor extends LogitsProcessor {
     // Case 2: Positive budget for thinking content.
     if (this.maxThinkingTokens !== undefined && this.maxThinkingTokens > 0 && !this.stopped_thinking) {
       const budgetRatio = this.tokens_generated / this.maxThinkingTokens;
-      console.log(`[ThinkingBudget] Positive budget: Ratio ${budgetRatio.toFixed(2)}`);
+      //console.log(`[ThinkingBudget] Positive budget: Ratio ${budgetRatio.toFixed(2)}`);
 
       // last 20% of the thinking budget, push towards a natural ending \n followed by </think> (idk if this works, I'm basing a lot of this from the article. would have this test this extensively)
       if (budgetRatio > 0.80) {
-        console.log("[ThinkingBudget] Approaching budget limit ( > 80%), nudging towards newline and </think>.");
+        //console.log("[ThinkingBudget] Approaching budget limit ( > 80%), nudging towards newline and </think>.");
         if (this.nl_token_id !== undefined && this.think_end_token_id !== undefined && scores.data[this.think_end_token_id] !== undefined) {
           scores.data[this.nl_token_id] = scores.data[this.think_end_token_id] * (1 + budgetRatio);
           scores.data[this.think_end_token_id] = scores.data[this.think_end_token_id] * (1 + budgetRatio);
@@ -82,12 +82,12 @@ export class ThinkingTokenBudgetProcessor extends LogitsProcessor {
       if (this.tokens_generated >= (this.maxThinkingTokens - 1)) {
         const newScores = new Float32Array(scores.data.length).fill(this.neg_inf);
         if (this.tokens_generated === this.maxThinkingTokens - 1) {
-          console.log("[ThinkingBudget] At budget limit - 1: Forcing newline token.");
+          //console.log("[ThinkingBudget] At budget limit - 1: Forcing newline token.");
           if (this.nl_token_id !== undefined) {
             newScores[this.nl_token_id] = 0;
           }
         } else { 
-          console.log("[ThinkingBudget] At or over budget limit: Forcing </think> token and stopping thinking.");
+          //console.log("[ThinkingBudget] At or over budget limit: Forcing </think> token and stopping thinking.");
           if (this.think_end_token_id !== undefined) {
             newScores[this.think_end_token_id] = 0;
           }

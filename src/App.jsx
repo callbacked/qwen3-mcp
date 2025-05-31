@@ -37,14 +37,14 @@ function App() {
   
   const [mcpServerUrls, setMcpServerUrls] = useState(() => {
     const savedUrls = localStorage.getItem(LOCALSTORAGE_MCP_SERVERS_KEY);
-    console.log("[App.jsx] Loading mcpServerUrls from localStorage content:", savedUrls);
+    //console.log("[App.jsx] Loading mcpServerUrls from localStorage content:", savedUrls);
     if (savedUrls) {
       try {
         const parsed = JSON.parse(savedUrls);
         const loadedResult = parsed.map(item => {
           if (typeof item === 'string') {
             const serverConfig = { url: item, status: "pending", error: null, toolsCount: 0, isEnabled: true, tools: [] };
-            console.log(`[App.jsx] Loaded server config (from string URL) for ${item}:`, JSON.parse(JSON.stringify(serverConfig)));
+            //console.log(`[App.jsx] Loaded server config (from string URL) for ${item}:`, JSON.parse(JSON.stringify(serverConfig)));
             return serverConfig;
           } else {
             const serverConfig = { 
@@ -55,7 +55,7 @@ function App() {
               isEnabled: item.isEnabled !== undefined ? item.isEnabled : true, 
               tools: item.tools || []
             };
-            console.log(`[App.jsx] Loaded server config for ${item.url}:`, JSON.parse(JSON.stringify(serverConfig)));
+            //console.log(`[App.jsx] Loaded server config for ${item.url}:`, JSON.parse(JSON.stringify(serverConfig)));
             return serverConfig;
           }
         });
@@ -83,7 +83,7 @@ function App() {
   };
 
   useEffect(() => {
-    console.log("[App.jsx] Attempting to save mcpServerUrls to localStorage. Current state:", JSON.parse(JSON.stringify(mcpServerUrls)));
+    //console.log("[App.jsx] Attempting to save mcpServerUrls to localStorage. Current state:", JSON.parse(JSON.stringify(mcpServerUrls)));
     localStorage.setItem(LOCALSTORAGE_MCP_SERVERS_KEY, JSON.stringify(mcpServerUrls));
   }, [mcpServerUrls]);
 
@@ -102,7 +102,7 @@ function App() {
 
   useEffect(() => {
     if (!worker.current) {
-      console.log("[App.jsx] Initializing worker...");
+      //console.log("[App.jsx] Initializing worker...");
       worker.current = new Worker(new URL("./worker.js", import.meta.url), {
         type: "module",
       });
@@ -113,13 +113,13 @@ function App() {
         .map(s => s.url);
 
       if (initialUrlsToConnect.length > 0) {
-         console.log("[App.jsx] Sending initialize_mcp_servers to worker with:", initialUrlsToConnect);
+         //console.log("[App.jsx] Sending initialize_mcp_servers to worker with:", initialUrlsToConnect);
          worker.current.postMessage({ type: "initialize_mcp_servers", data: { urls: initialUrlsToConnect } });
       }
     }
 
     if (worker.current && status === null) {
-      console.log("[App.jsx] Auto-loading model...");
+      //console.log("[App.jsx] Auto-loading model...");
       worker.current.postMessage({ type: "load" });
       setStatus("loading");
       setError(null);
@@ -128,7 +128,7 @@ function App() {
 
   useEffect(() => {
     if (worker.current && status === "ready") {
-      console.log("[App.jsx] mcpServerUrls changed, sending update_tool_configs_and_recalculate_tokens to worker.");
+      //console.log("[App.jsx] mcpServerUrls changed, sending update_tool_configs_and_recalculate_tokens to worker.");
       worker.current.postMessage({
         type: "update_tool_configs_and_recalculate_tokens",
         data: { allServerConfigsFromApp: mcpServerUrls }
@@ -138,10 +138,10 @@ function App() {
 
   useEffect(() => {
     if (!worker.current) {
-      console.log("[App.jsx] Worker not available yet for attaching listeners.");
+      //console.log("[App.jsx] Worker not available yet for attaching listeners.");
       return;
     }
-    console.log("[App.jsx] Attaching message listeners to worker.");
+    //console.log("[App.jsx] Attaching message listeners to worker.");
 
     const onMessageReceived = (e) => {
       const type = e.data.type;
@@ -172,8 +172,8 @@ function App() {
           return prevUrls.map(serverInState => {
             if (serverInState.url === url) { 
               if (success) { 
-                console.log(`[App.jsx] mcp_server_status for ${url}: serverInState.tools before merge:`, JSON.parse(JSON.stringify(serverInState.tools || [])));
-                console.log(`[App.jsx] mcp_server_status for ${url}: workerProvidedTools:`, JSON.parse(JSON.stringify(workerProvidedTools || [])));
+                //console.log(`[App.jsx] mcp_server_status for ${url}: serverInState.tools before merge:`, JSON.parse(JSON.stringify(serverInState.tools || [])));
+                //console.log(`[App.jsx] mcp_server_status for ${url}: workerProvidedTools:`, JSON.parse(JSON.stringify(workerProvidedTools || [])));
                 const mergedTools = (workerProvidedTools || []).map(canonicalToolFromWorker => {
                   const persistedToolSettings = (serverInState.tools || []).find(pt => pt.name === canonicalToolFromWorker.name);
                   const mergedIsEnabled = persistedToolSettings?.isEnabled !== undefined
@@ -193,7 +193,7 @@ function App() {
                   }
                   return { ...canonicalToolFromWorker, isEnabled: mergedIsEnabled, showDescription: mergedShowDescription };
                 });
-                console.log(`[App.jsx] mcp_server_status for ${url}: mergedTools after merge:`, JSON.parse(JSON.stringify(mergedTools)));
+                //console.log(`[App.jsx] mcp_server_status for ${url}: mergedTools after merge:`, JSON.parse(JSON.stringify(mergedTools)));
                 return {
                   ...serverInState,
                   status: "connected",
@@ -202,7 +202,7 @@ function App() {
                   toolsCount: mergedTools.length,
                 };
               } else {
-                console.log(`[App.jsx] MCP Server connection failed for ${url}. Setting status to error. Error: ${error}`);
+                //console.log(`[App.jsx] MCP Server connection failed for ${url}. Setting status to error. Error: ${error}`);
                 return {
                   ...serverInState, 
                   status: "error",
@@ -311,17 +311,17 @@ function App() {
 
                 if (thinkStartIndexVal !== -1 && thinkEndIndexVal !== -1 && thinkEndIndexVal > thinkStartIndexVal) {
                   last.answerIndex = thinkEndIndexVal + thinkEndTag.length;
-                  //console.log(`[App.jsx] Tags parsed: <think> at ${thinkStartIndexVal}, </think> at ${thinkEndIndexVal}. Setting answerIndex to: ${last.answerIndex}`);
+                  ////console.log(`[App.jsx] Tags parsed: <think> at ${thinkStartIndexVal}, </think> at ${thinkEndIndexVal}. Setting answerIndex to: ${last.answerIndex}`);
                 } else if (thinkStartIndexVal !== -1) {
                   last.answerIndex = undefined; 
-                  //console.log(`[App.jsx] <think> found at ${thinkStartIndexVal}, but </think> is missing or misplaced. answerIndex remains undefined for now.`);
+                  ////console.log(`[App.jsx] <think> found at ${thinkStartIndexVal}, but </think> is missing or misplaced. answerIndex remains undefined for now.`);
                 } else {
                   last.answerIndex = 0;
-                  //console.log(`[App.jsx] reasonEnabled is true, but no <think> tag found. Setting answerIndex to 0.`);
+                  ////console.log(`[App.jsx] reasonEnabled is true, but no <think> tag found. Setting answerIndex to 0.`);
                 }
               } else {
                 last.answerIndex = 0;
-                //console.log(`[App.jsx] reasonEnabled is false. Setting answerIndex to 0.`);
+                ////console.log(`[App.jsx] reasonEnabled is false. Setting answerIndex to 0.`);
               }
 
               cloned[cloned.length - 1] = last;
@@ -338,7 +338,7 @@ function App() {
           break;
         case "tool_execution_error":
           {
-            console.log("[App.jsx] onMessageReceived: Worker sent 'tool_execution_error':", e.data);
+            //console.log("[App.jsx] onMessageReceived: Worker sent 'tool_execution_error':", e.data);
             const { errorDetails } = e.data; 
             setMessages((prev) => {
               const cloned = [...prev];
@@ -361,7 +361,7 @@ function App() {
                 };
                 assistantMsgToUpdate.isRetrying = false;
                 cloned[lastAssistantMessageIndex] = assistantMsgToUpdate;
-                console.log(`[App.jsx] Marked assistant message at index ${lastAssistantMessageIndex} for retry:`, assistantMsgToUpdate);
+                //console.log(`[App.jsx] Marked assistant message at index ${lastAssistantMessageIndex} for retry:`, assistantMsgToUpdate);
               } else {
                 console.warn("[App.jsx] tool_execution_error: Could not find a preceding assistant message to mark for retry.");
               }
@@ -429,7 +429,7 @@ function App() {
       if (existingServer && existingServer.status === 'error') {
         handleForceReconnectMcpServer(urlToAdd);
       } else {
-        console.log(`URL ${urlToAdd} already exists and is not in error state or is connecting: ${existingServer?.status}`);
+        //console.log(`URL ${urlToAdd} already exists and is not in error state or is connecting: ${existingServer?.status}`);
       }
     }
   };
@@ -610,7 +610,7 @@ function App() {
       return;
     }
 
-    console.log(`[App.jsx] Retrying tool call: ${functionName} with args:`, args);
+    //console.log(`[App.jsx] Retrying tool call: ${functionName} with args:`, args);
     
     setMessages(prev => {
       const newMessages = [...prev];

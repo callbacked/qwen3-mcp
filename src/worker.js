@@ -79,7 +79,7 @@ async function calculateAndSendToolSchemaTokens() {
       return;
     }
   }
-  console.log(`[Worker] Calculated tool schema token count: ${count}`);
+  //console.log(`[Worker] Calculated tool schema token count: ${count}`);
   self.postMessage({ type: 'tool_schema_token_update', data: { currentToolSchemaTokens: count } });
 }
 
@@ -105,16 +105,16 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
     localThinkingTokenBudgetProcessor = new ThinkingTokenBudgetProcessor(tokenizer, maxThinkingBudget);
     logits_processor_list = new LogitsProcessorList();
     logits_processor_list.push(localThinkingTokenBudgetProcessor);
-    console.log(`[Worker] generate: ThinkingTokenBudgetProcessor activated with budget ${maxThinkingBudget}.`);
+    //console.log(`[Worker] generate: ThinkingTokenBudgetProcessor activated with budget ${maxThinkingBudget}.`);
   } else {
-    console.log("[Worker] generate: ThinkingTokenBudgetProcessor not active (reasonEnabled is false).");
+    //console.log("[Worker] generate: ThinkingTokenBudgetProcessor not active (reasonEnabled is false).");
   }
 
   const { toolsForTemplate: fullToolsForTemplate, mcpToolsArray: currentMcpToolsArray } = prepareToolData(managedMcpClients, mcpServerUrls);
   mcpToolsArray = currentMcpToolsArray;
 
   let toolsToUseInCurrentGeneration = fullToolsForTemplate;
-  console.log(`[Worker] Using all ${toolsToUseInCurrentGeneration.length} tools`);
+  //console.log(`[Worker] Using all ${toolsToUseInCurrentGeneration.length} tools`);
 
   if (toolsToUseInCurrentGeneration.length > 0) {
     const systemPrompt = createToolSystemPrompt();
@@ -137,9 +137,9 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
     prompt_tokens_without_tool_schemas = 0;
   }
 
-  console.log("[Worker] Applying chat template with messages:", JSON.stringify(messages, null, 2));
+  //console.log("[Worker] Applying chat template with messages:", JSON.stringify(messages, null, 2));
   if (toolsToUseInCurrentGeneration.length > 0) {
-    console.log("[Worker] Providing tools to apply_chat_template:", JSON.stringify(toolsToUseInCurrentGeneration, null, 2));
+    //console.log("[Worker] Providing tools to apply_chat_template:", JSON.stringify(toolsToUseInCurrentGeneration, null, 2));
   }
 
   const inputs_with_tool_schemas = tokenizer.apply_chat_template(messages, {
@@ -157,11 +157,11 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
 
   if (toolsToUseInCurrentGeneration.length > 0) {
     const tool_schema_tokens_cost = current_num_prompt_tokens - prompt_tokens_without_tool_schemas;
-    console.log(`[Worker] Prompt tokens (including ${toolsToUseInCurrentGeneration.length} tool schemas and system prompt): ${current_num_prompt_tokens}.`);
-    console.log(`[Worker] Prompt tokens (with system prompt, but no tool schemas): ${prompt_tokens_without_tool_schemas}.`);
-    console.log(`[Worker] Estimated token cost for ${toolsToUseInCurrentGeneration.length} tool schemas: ${tool_schema_tokens_cost}.`);
+    //console.log(`[Worker] Prompt tokens (including ${toolsToUseInCurrentGeneration.length} tool schemas and system prompt): ${current_num_prompt_tokens}.`);
+    //console.log(`[Worker] Prompt tokens (with system prompt, but no tool schemas): ${prompt_tokens_without_tool_schemas}.`);
+    //console.log(`[Worker] Estimated token cost for ${toolsToUseInCurrentGeneration.length} tool schemas: ${tool_schema_tokens_cost}.`);
   } else {
-    console.log(`[Worker] Prompt tokens: ${current_num_prompt_tokens} (no tools).`);
+    //console.log(`[Worker] Prompt tokens: ${current_num_prompt_tokens} (no tools).`);
   }
 
   const inputs = inputs_with_tool_schemas;
@@ -201,7 +201,7 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
         if (testMatch && testMatch[1]) {
           try {
             JSON.parse(testMatch[1]); 
-            console.log("[Worker] callback_function: Potential complete tool_call detected. Interrupting generation.");
+            //console.log("[Worker] callback_function: Potential complete tool_call detected. Interrupting generation.");
             stopping_criteria.interrupt();
           } catch (e) {
           }
@@ -239,7 +239,7 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
 
        if (generationResult && generationResult.past_key_values) {
            past_key_values_cache = generationResult.past_key_values;
-      console.log("[Worker] generate: past_key_values_cache updated.");
+      //console.log("[Worker] generate: past_key_values_cache updated.");
        } else {
       console.warn("[Worker] generate: No past_key_values in generationResult. Cache NOT updated.");
     }
@@ -262,11 +262,11 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
     } 
 
     messages.push({ role: "assistant", content: contentForHistory });
-    console.log("[Worker] Assistant message pushed to history (for model):", JSON.stringify(messages.slice(-1), null, 2));
+    //console.log("[Worker] Assistant message pushed to history (for model):", JSON.stringify(messages.slice(-1), null, 2));
   } else if (stopping_criteria.interrupted) {
-     console.log("[Worker] Assistant message was empty but generation was interrupted (likely for tool call). Proceeding to parse from accumulated output.");
+     //console.log("[Worker] Assistant message was empty but generation was interrupted (likely for tool call). Proceeding to parse from accumulated output.");
   } else {
-     console.log("[Worker] Assistant message was empty and not interrupted. Completing.");
+     //console.log("[Worker] Assistant message was empty and not interrupted. Completing.");
      self.postMessage({ status: "complete", output: "", toolCallInProgress: false });
      return;
   }
@@ -282,15 +282,15 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
     );
 
     messages.push(...toolResponseMessages);
-    console.log("[Worker] Tool response messages pushed to history:", JSON.stringify(toolResponseMessages, null, 2));
+    //console.log("[Worker] Tool response messages pushed to history:", JSON.stringify(toolResponseMessages, null, 2));
 
     if (!mcpErrorOccurred) {
-      console.log("[Worker] Recursively calling generate with new messages including tool responses.");
+      //console.log("[Worker] Recursively calling generate with new messages including tool responses.");
       awaitingToolResults = false; 
       await generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBudget });
       return; 
     } else {
-      console.log("[Worker] Tool execution error occurred. Halting generation for this turn.");
+      //console.log("[Worker] Tool execution error occurred. Halting generation for this turn.");
       self.postMessage({ 
         status: "complete", 
         output: "", 
@@ -301,14 +301,14 @@ async function generate({ messages, reasonEnabled, mcpServerUrls, maxThinkingBud
     }
   }
 
-  console.log("[Worker] No valid tool calls processed in this turn, or it\'s a final answer. Generation complete for this path.");
+  //console.log("[Worker] No valid tool calls processed in this turn, or it\'s a final answer. Generation complete for this path.");
   awaitingToolResults = false;
   self.postMessage({ status: "complete", output: "", toolCallInProgress: false }); 
 }
 
 self.addEventListener("message", async (e) => {
   const { type, data } = e.data;
-  console.log(`[Worker] Received message of type: ${type}`, data ? JSON.stringify(data).substring(0, 200) : '');
+  //console.log(`[Worker] Received message of type: ${type}`, data ? JSON.stringify(data).substring(0, 200) : '');
   try {
   switch (type) {
     case "check":
@@ -318,24 +318,24 @@ self.addEventListener("message", async (e) => {
       loadModelAndWarmup(self.postMessage).then(async () => {
         const [tokenizerInstance, modelInstance] = await TextGenerationPipeline.getInstance();
         workerTokenizer = tokenizerInstance; 
-        console.log("[Worker] Model loaded. MCP servers will be handled by initialize_mcp_servers.");
+        //console.log("[Worker] Model loaded. MCP servers will be handled by initialize_mcp_servers.");
       });
       break;
     case "initialize_mcp_servers":
-      console.log("[Worker] Received initialize_mcp_servers with URLs:", data.urls);
+      //console.log("[Worker] Received initialize_mcp_servers with URLs:", data.urls);
       synchronizeMcpClients(data.urls, self.postMessage)
         .then(() => {
-          console.log("[Worker] MCP Servers synchronization complete after initialize_mcp_servers message.");
+          //console.log("[Worker] MCP Servers synchronization complete after initialize_mcp_servers message.");
         })
         .catch(error => {
           console.error("[Worker] Error during MCP server synchronization from initialize_mcp_servers:", error);
         });
       break;
     case "add_mcp_server": 
-      console.log("[Worker] Received add_mcp_server for URL:", data.url);
+      //console.log("[Worker] Received add_mcp_server for URL:", data.url);
       addAndConnectMcpServer(data.url, self.postMessage)
         .then(status => {
-          console.log(`[Worker] MCP Server ${data.url} add/connect attempt complete.`);
+          //console.log(`[Worker] MCP Server ${data.url} add/connect attempt complete.`);
         })
         .catch(error => {
           console.error(`[Worker] Error processing add_mcp_server for ${data.url}:`, error);
@@ -346,10 +346,10 @@ self.addEventListener("message", async (e) => {
         });
       break;
     case "force_reconnect_mcp_server":
-      console.log("[Worker] Received force_reconnect_mcp_server for URL:", data.url);
+      //console.log("[Worker] Received force_reconnect_mcp_server for URL:", data.url);
       forceReconnectMcpServer(data.url, self.postMessage)
         .then(() => {
-            console.log(`[Worker] MCP Server ${data.url} force reconnect attempt processed.`);
+            //console.log(`[Worker] MCP Server ${data.url} force reconnect attempt processed.`);
         })
         .catch(error => {
             console.error(`[Worker] Error during force_reconnect_mcp_server for ${data.url}:`, error);
@@ -361,7 +361,7 @@ self.addEventListener("message", async (e) => {
       break;
     case "toggle_tool":
       if (data && data.serverUrl && data.toolName) {
-        console.log(`[Worker] Toggling tool enablement: ${data.toolName} on server ${data.serverUrl} to ${data.isEnabled}`);
+        //console.log(`[Worker] Toggling tool enablement: ${data.toolName} on server ${data.serverUrl} to ${data.isEnabled}`);
         
         if (managedMcpClients.has(data.serverUrl)) {
           const serverState = managedMcpClients.get(data.serverUrl);
@@ -371,7 +371,7 @@ self.addEventListener("message", async (e) => {
               serverState.tools[toolIndex].isEnabled = data.isEnabled !== undefined ? 
                 data.isEnabled : !serverState.tools[toolIndex].isEnabled;
                 
-              console.log(`[Worker] Tool ${data.toolName} isEnabled set to ${serverState.tools[toolIndex].isEnabled}`);
+              //console.log(`[Worker] Tool ${data.toolName} isEnabled set to ${serverState.tools[toolIndex].isEnabled}`);
             } else {
               console.warn(`[Worker] Tool ${data.toolName} not found on server ${data.serverUrl}`);
             }
@@ -383,7 +383,7 @@ self.addEventListener("message", async (e) => {
       break;
     case "toggle_tool_description":
       if (data && data.serverUrl && data.toolName) {
-        console.log(`[Worker] Toggling tool description visibility: ${data.toolName} on server ${data.serverUrl}`);
+        //console.log(`[Worker] Toggling tool description visibility: ${data.toolName} on server ${data.serverUrl}`);
         
         if (managedMcpClients.has(data.serverUrl)) {
           const serverState = managedMcpClients.get(data.serverUrl);
@@ -391,7 +391,7 @@ self.addEventListener("message", async (e) => {
             const toolIndex = serverState.tools.findIndex(tool => tool.name === data.toolName);
             if (toolIndex !== -1) {
               serverState.tools[toolIndex].showDescription = !serverState.tools[toolIndex].showDescription;
-              console.log(`[Worker] Tool ${data.toolName} showDescription set to ${serverState.tools[toolIndex].showDescription}`);
+              //console.log(`[Worker] Tool ${data.toolName} showDescription set to ${serverState.tools[toolIndex].showDescription}`);
             } else {
               console.warn(`[Worker] Tool ${data.toolName} not found on server ${data.serverUrl}`);
             }
@@ -449,12 +449,12 @@ self.addEventListener("message", async (e) => {
       stopping_criteria.reset();
         awaitingToolResults = false; 
       
-      console.log("Closing all MCP client connections due to chat reset.");
+      //console.log("Closing all MCP client connections due to chat reset.");
       for (const [url, mcpState] of managedMcpClients) {
         if (mcpState.client && typeof mcpState.client.close === 'function') {
           try {
             await mcpState.client.close();
-            console.log(`Closed client for ${url}`);
+            //console.log(`Closed client for ${url}`);
           } catch (closeError) {
             console.error(`Error closing client for ${url} during reset:`, closeError);
           }
@@ -462,14 +462,14 @@ self.addEventListener("message", async (e) => {
       }
       managedMcpClients.clear();
         mcpToolsArray = []; 
-        console.log("Chat session reset. All MCP clients and mcpToolsArray cleared.");
+        //console.log("Chat session reset. All MCP clients and mcpToolsArray cleared.");
       break;
 
     case "update_tool_configs_and_recalculate_tokens":
       if (data && data.allServerConfigsFromApp) {
-        console.log("[Worker] Received update_tool_configs_and_recalculate_tokens. App says these URLs should exist:", 
-            JSON.stringify(data.allServerConfigsFromApp.map(s => s.url))
-        );
+        //console.log("[Worker] Received update_tool_configs_and_recalculate_tokens. App says these URLs should exist:", 
+            //JSON.stringify(data.allServerConfigsFromApp.map(s => s.url))
+        //);
         const { allServerConfigsFromApp } = data;
         const appServerUrls = new Set(allServerConfigsFromApp.map(s => s.url));
 
@@ -481,7 +481,7 @@ self.addEventListener("message", async (e) => {
         }
 
         for (const workerUrl of urlsToRemoveFromWorker) {
-            console.log(`[Worker] update_tool_configs: Stale client ${workerUrl} found in worker, but not in app's list. Removing.`);
+            //console.log(`[Worker] update_tool_configs: Stale client ${workerUrl} found in worker, but not in app's list. Removing.`);
             const clientToRemove = managedMcpClients.get(workerUrl);
             if (clientToRemove && clientToRemove.client) {
               if (typeof clientToRemove.client.disconnect === 'function') {
@@ -523,7 +523,7 @@ self.addEventListener("message", async (e) => {
           }
         }
         
-        console.log("[Worker] managedMcpClients after reconciliation in update_tool_configs:", Array.from(managedMcpClients.keys()));
+        //console.log("[Worker] managedMcpClients after reconciliation in update_tool_configs:", Array.from(managedMcpClients.keys()));
         await calculateAndSendToolSchemaTokens();
       } else {
         console.warn("[Worker] Invalid payload for update_tool_configs_and_recalculate_tokens:", data);
@@ -549,7 +549,7 @@ async function retry_tool_call({
   reasonEnabled,         
   maxThinkingBudget      
 }) {
-  console.log("[Worker] retry_tool_call received:", { messageIndex, functionName, args, mcpServerUrls, reasonEnabled, maxThinkingBudget });
+  //console.log("[Worker] retry_tool_call received:", { messageIndex, functionName, args, mcpServerUrls, reasonEnabled, maxThinkingBudget });
   stopping_criteria.reset();
 
   generation_start_time = performance.now();
@@ -573,20 +573,20 @@ async function retry_tool_call({
   }
 
   const serverUrlToReconnect = toolToRetry.serverUrl;
-  console.log(`[Worker] retry_tool_call: Forcing re-connection to ${serverUrlToReconnect} before retrying tool.`);
+  //console.log(`[Worker] retry_tool_call: Forcing re-connection to ${serverUrlToReconnect} before retrying tool.`);
   
   if (managedMcpClients.has(serverUrlToReconnect)) {
     const clientState = managedMcpClients.get(serverUrlToReconnect);
     if (clientState && clientState.client && typeof clientState.client.close === 'function') {
         try {
-            console.log(`[Worker] retry_tool_call: Closing existing client for ${serverUrlToReconnect} before removing.`);
+            //console.log(`[Worker] retry_tool_call: Closing existing client for ${serverUrlToReconnect} before removing.`);
             await clientState.client.close(); 
         } catch (closeError) {
             console.warn(`[Worker] retry_tool_call: Error closing existing client for ${serverUrlToReconnect}:`, closeError);
         }
     }
     managedMcpClients.delete(serverUrlToReconnect);
-    console.log(`[Worker] retry_tool_call: Removed client for ${serverUrlToReconnect} from managedMcpClients.`);
+    //console.log(`[Worker] retry_tool_call: Removed client for ${serverUrlToReconnect} from managedMcpClients.`);
   }
 
   try {
@@ -594,7 +594,7 @@ async function retry_tool_call({
     if (!success) {
       console.warn(`[Worker] retry_tool_call: Failed to re-establish connection to ${serverUrlToReconnect}: ${connectError?.message || 'Unknown connection error'}`);
     } else {
-      console.log(`[Worker] retry_tool_call: Connection to ${serverUrlToReconnect} confirmed/re-established.`);
+      //console.log(`[Worker] retry_tool_call: Connection to ${serverUrlToReconnect} confirmed/re-established.`);
     }
   } catch (e) {
     console.error(`[Worker] retry_tool_call: Error during explicit reconnect attempt for ${serverUrlToReconnect}:`, e);
@@ -612,7 +612,7 @@ async function retry_tool_call({
   let retryExecutionSuccess = !mcpErrorOccurred;
 
   let updatedMessagesSnapshot = [...messagesSnapshot, toolResponseMessage];
-  console.log("[Worker] retry_tool_call: Tool response message from retry pushed to snapshot:", JSON.stringify(toolResponseMessage, null, 2));
+  //console.log("[Worker] retry_tool_call: Tool response message from retry pushed to snapshot:", JSON.stringify(toolResponseMessage, null, 2));
 
   if (retryExecutionSuccess) {
     self.postMessage({
@@ -620,7 +620,7 @@ async function retry_tool_call({
       data: { messageIndex } 
     });
 
-    console.log("[Worker] retry_tool_call: Tool retry successful, now calling generate() with updated history.");
+    //console.log("[Worker] retry_tool_call: Tool retry successful, now calling generate() with updated history.");
     await generate({
       messages: updatedMessagesSnapshot, 
       reasonEnabled,
