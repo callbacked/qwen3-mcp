@@ -62,7 +62,7 @@ function getNonToolCallContent(content, parsedToolCalls, isStreaming) {
       nonToolContent = nonToolContent.substring(0, openTagIndex);
     }
   }
-  return nonToolContent.trim();
+  return nonToolContent.trim(); 
 }
 
 function Message({ role, content, name, isStreamingActiveForThisMessage = false, onRetryFailedToolCall, isRetrying, toolRetryFailed, toolErrorDetails /* This prop might be deprecated if error is in role:tool content */ }) {
