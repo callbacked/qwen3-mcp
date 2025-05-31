@@ -35,7 +35,7 @@
     "globals": "^15.13.0",
     "vite": "^6.0.3"
   },
-  "description": "--- title: Qwen3 WebGPU emoji: 🚀 colorFrom: blue colorTo: pink sdk: static pinned: false thumbnail: >-   https://huggingface.co/spaces/webml-community/qwen3-webgpu/resolve/main/banner.png short_description: A hybrid reasoning model that runs locally in your browser. models:   - onnx-community/Qwen3-0.6B-ONNX ---",
+  "description": "",
   "main": "eslint.config.js",
   "keywords": [],
   "author": "",
