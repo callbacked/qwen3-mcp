@@ -1,0 +1,273 @@
+/* Shake animation for failed tool calls */
+@keyframes shakeAnimation {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+.tool-call-failed-shake {
+  animation: shakeAnimation 0.4s ease-in-out;
+}
+
+@scope (.markdown) {
+  white-space: pre-wrap; 
+  overflow-wrap: anywhere; 
+
+  pre {
+    margin: 0.5rem 0;
+    white-space: break-spaces;
+  }
+
+  code {
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+    font-size: 0.9em;
+  }
+
+  pre,
+  code {
+    background-color: #f2f2f2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    pre,
+    code {
+      background-color: #333;
+    }
+  }
+
+  pre:has(code) {
+    padding: 1rem 0.5rem;
+  }
+
+  pre > code {
+    padding: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin: 1rem 0;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    margin: 0.83rem 0;
+  }
+
+  h3 {
+    font-size: 1.25em;
+    margin: 0.67rem 0;
+  }
+
+  h4 {
+    font-size: 1em;
+    margin: 0.5rem 0;
+  }
+
+  h5 {
+    font-size: 0.875em;
+    margin: 0.33rem 0;
+  }
+
+  h6 {
+    font-size: 0.75em;
+    margin: 0.25rem 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6:first-child {
+    margin-top: 0;
+  }
+
+  ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+  }
+
+  ol {
+    list-style-type: decimal;
+    margin-left: 1.5rem;
+  }
+
+  li {
+    margin: 0.25rem 0;
+  }
+
+  p:not(:first-child) {
+    margin-top: 0.75rem;
+  }
+
+  p:not(:last-child) {
+    margin-bottom: 0.75rem;
+  }
+
+  p:first-child {
+    margin-top: 0;
+  }
+
+  ul > li {
+    margin-left: 1rem;
+  }
+
+  table,
+  th,
+  td {
+    border: 1px solid lightgray;
+    padding: 0.25rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    table,
+    th,
+    td {
+      border: 1px solid #f2f2f2;
+    }
+  }
+}
+
+
+.markdown {
+  line-height: 1.5; 
+}
+
+.thinking-monologue-streaming {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: calc(3 * 1.5em); 
+
+  line-height: 1.5em; 
+}
+
+.thinking-fade-container {
+  position: relative;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+}
+
+.thinking-scroll-content {
+  max-height: 3.8rem; 
+  overflow-y: auto;
+  scrollbar-width: none; 
+}
+
+.thinking-scroll-content::-webkit-scrollbar {
+  display: none; 
+}
+
+.thinking-scroll-content .markdown p {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+@keyframes tokenFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.token-char-animate {
+  display: inline;
+  opacity: 0;
+  animation: tokenFadeIn 0.3s ease-out forwards;
+  vertical-align: baseline;
+}
+
+@keyframes slowPulseAnimation {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.animate-slow-pulse {
+  animation: slowPulseAnimation 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* New Sweep Glow Animation */
+@keyframes sweepGlowAnimation {
+  0% {
+    background-position: -100% center; /* Start with the glow area to the left, off-screen */
+  }
+  100% {
+    background-position: 100% center; /* End with the glow area to the right, off-screen */
+  }
+}
+
+.thinking-glow-sweep {
+  /* Default to light mode colors */
+  --text-color-actual: #374151; /* Tailwind gray-700 */
+  --glow-color-actual: #FFFFFF; /* White for a distinct glow */
+
+  background-image: linear-gradient(
+    to right,
+    var(--text-color-actual) 0%,
+    var(--text-color-actual) 35%, 
+    var(--glow-color-actual) 50%,
+    var(--text-color-actual) 65%,
+    var(--text-color-actual) 100%
+  );
+  background-size: 200% 100%; /* Gradient is twice the width of the text */
+  color: transparent; /* Make original text transparent */
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: sweepGlowAnimation 0.8s linear infinite; /* Adjust duration as needed */
+}
+
+@media (prefers-color-scheme: dark) {
+  .thinking-glow-sweep {
+    --text-color-actual: #D1D5DB; /* Tailwind gray-300 */
+    --glow-color-actual: #FFFFFF; /* White, or a very light gray like #F3F4F6 for dark mode glow */
+  }
+}
+
+/* Fade-in Up Animation */
+@keyframes fadeInUpAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUpAnimation 0.5s ease-out forwards;
+}
+
+.tool-call-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px); /* Slight upward movement */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
