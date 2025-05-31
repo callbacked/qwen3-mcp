@@ -109,13 +109,11 @@ function App() {
       });
       worker.current.postMessage({ type: "check" });
       
-      const initialUrlsToConnect = mcpServerUrls
-        .filter(s => s.isEnabled)
-        .map(s => s.url);
+      const allServerUrlsFromStorage = mcpServerUrls.map(s => s.url);
 
-      if (initialUrlsToConnect.length > 0) {
-         //console.log("[App.jsx] Sending initialize_mcp_servers to worker with:", initialUrlsToConnect);
-         worker.current.postMessage({ type: "initialize_mcp_servers", data: { urls: initialUrlsToConnect } });
+      if (allServerUrlsFromStorage.length > 0) {
+         //console.log("[App.jsx] Sending initialize_mcp_servers to worker with all configured URLs:", allServerUrlsFromStorage);
+         worker.current.postMessage({ type: "initialize_mcp_servers", data: { urls: allServerUrlsFromStorage } });
       }
     }
 
@@ -351,7 +349,7 @@ function App() {
           break;
         case "tool_execution_error":
           {
-            console.log("[App.jsx] onMessageReceived: Worker sent 'tool_execution_error':", e.data);
+            //console.log("[App.jsx] onMessageReceived: Worker sent 'tool_execution_error':", e.data);
             setIsExecutingTool(false);
             const { errorDetails } = e.data; 
             setMessages((prev) => {
@@ -466,11 +464,18 @@ function App() {
 
   const handleToggleMcpServer = (urlToToggle) => {
     setMcpServerUrls(prevUrls => 
-      prevUrls.map(server => 
-        server.url === urlToToggle 
-          ? { ...server, isEnabled: !server.isEnabled } 
-          : server
-      )
+      prevUrls.map(server => {
+        if (server.url === urlToToggle) {
+          const newIsEnabledState = !server.isEnabled;
+          // If we are enabling a server that isn't currently connected, trigger a connect attempt.
+          if (newIsEnabledState && server.status !== 'connected') {
+            //console.log(`[App.jsx] Server ${urlToToggle} is being enabled and is not connected (status: ${server.status}). Triggering connect.`);
+            worker.current.postMessage({ type: "add_mcp_server", data: { url: urlToToggle } });
+          }
+          return { ...server, isEnabled: newIsEnabledState };
+        } 
+        return server;
+      })
     );
   };
 
