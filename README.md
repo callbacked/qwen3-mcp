@@ -15,6 +15,10 @@ Additionally, it served as an exercise to implement a way of limiting how long Q
 ## Demo
 
 
+https://github.com/user-attachments/assets/c91be530-4803-4de9-b4b2-7498a775cd9b
+
+
+
 *As of writing this, There is a DeepSeek R1-0528 Distillation of Qwen3 8B that came out not too long ago. On the off chance that a distillation for the 0.6B model releases (fingers crossed), I will be sure to add it as an option within the UI for users to download and use. It would be interesting to see how much more intelligent it can get off of DeepSeek R1-0528!*
 
 ## Key Features
