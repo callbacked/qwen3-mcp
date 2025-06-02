@@ -10,7 +10,7 @@ This project began as an adaptation of Xenova's excellent [Qwen3 0.6B WebGPU dem
 The motivation came from the fact that **all** Qwen3 models have tool calling support. Coupled with the fact that 0.6B is
 surprisingly coherent in considering its very tiny size, I was curious to see how far I can take this model in general tool calling tasks.
 
-Additionally, it served as an exercise to implement a way of limiting how long Qwen3 can think, by giving it a max "Thinking Budget" of N tokens before providing a final answer. That way we can avoid Qwen3 "overthinking" sometimes. The idea for that came [from an article by Zach Mueller](https://muellerzr.github.io/til/end_thinking.html) describing how it can be acheived. It was a great read!
+Additionally, it served as an exercise to implement a way of limiting how long Qwen3 can think, by giving it a max "Thinking Budget" of N tokens before providing a final answer, or in the best case have it taper off to natural end without abruptly ending its thought. That way we can avoid Qwen3 "overthinking" sometimes. The idea for that came [from an article by Zach Mueller](https://muellerzr.github.io/til/end_thinking.html) describing how it can be acheived. It was a great read!
 
 ## Demo
 
